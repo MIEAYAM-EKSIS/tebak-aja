@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>teka teki</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=VT323&family=Italiana&display=swap');
+
+  :root {
+    --bg: #000000;
+    --text: #ffffff;
+    --accent: #cccccc;
+    --dim: #111111;
+    --glow: rgba(255,255,255,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Italiana', serif;
+    font-style: italic;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* ======= CRT SCANLINES ======= */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.45) 3px,
+      rgba(0,0,0,0.45) 4px
+    );
+    pointer-events: none; z-index: 9998;
+    animation: crt-roll 0.07s steps(1) infinite;
+  }
+
+  /* CRT phosphor glow overlay */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+    z-index: 9997;
+    animation: crt-flicker 0.15s steps(1) infinite;
+  }
+
+  @keyframes crt-roll {
+    0%   { background-position: 0 0; }
+    100% { background-position: 0 4px; }
+  }
+
+  @keyframes crt-flicker {
+    0%,100% { opacity:1 }
+    33%     { opacity:0.97 }
+    66%     { opacity:0.99 }
+    50%     { opacity:0.94 }
+  }
+
+  /* horizontal signal-loss bar */
+  @keyframes h-glitch {
+    0%,89%,100% { clip-path: inset(200% 0 200% 0); }
+    90% { clip-path: inset(30% 0 60% 0); transform: translateX(6px); filter: brightness(2); }
+    92% { clip-path: inset(60% 0 10% 0); transform: translateX(-4px); }
+    94% { clip-path: inset(10% 0 80% 0); transform: translateX(2px); }
+    96% { clip-path: inset(200% 0 200% 0); transform: translateX(0); }
+  }
+
+  .crt-ghost {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    pointer-events: none;
+    z-index: 9996;
+    animation: h-glitch 4s steps(1) infinite;
+    mix-blend-mode: screen;
+    background: linear-gradient(0deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+  }
+
+  /* ======= MUSIC GATE ======= */
+  #music-gate {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 10000;
+    gap: 30px;
+    animation: gate-glitch 6s steps(1) infinite;
+  }
+
+  @keyframes gate-glitch {
+    0%,85%,100% { filter: none; }
+    86% { filter: hue-rotate(30deg) brightness(1.3); transform: skewX(-1deg); }
+    87% { filter: none; transform: skewX(0); }
+    88% { filter: brightness(0.5); transform: translateX(-3px); }
+    89% { filter: none; transform: translateX(0); }
+  }
+
+  #music-gate h1 {
+    font-family: 'Italiana', serif;
+    font-style: italic;
+    font-size: clamp(2.5rem, 7vw, 5rem);
+    letter-spacing: 6px;
+    color: var(--text);
+    text-shadow: 0 0 20px rgba(255,255,255,0.3);
+    animation: txt-shake 7s steps(1) infinite;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.2;
+  }
+
+  @keyframes txt-shake {
+    0%,90%,100% { text-shadow: 0 0 20px rgba(255,255,255,0.3); }
+    91% { text-shadow: 4px 0 0 rgba(255,255,255,0.5), -4px 0 0 rgba(255,255,255,0.5); transform: translateX(3px); }
+    92% { text-shadow: -4px 0 0 rgba(255,255,255,0.5), 4px 0 0 rgba(255,255,255,0.5); transform: translateX(-3px); }
+    93% { text-shadow: 0 0 20px rgba(255,255,255,0.3); transform: translateX(0); }
+  }
+
+  @keyframes pulse-text {
+    0%,100%{opacity:1} 50%{opacity:0.5}
+  }
+
+  #music-gate p {
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: clamp(1rem, 2.5vw, 1.3rem);
+    color: var(--accent);
+    opacity: 0.7;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    animation: pulse-text 3s infinite;
+  }
+
+  .toggle-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+
+  .toggle-label {
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: 1rem; letter-spacing: 5px; color: var(--accent); opacity: 0.6; text-transform: uppercase;
+  }
+
+  #music-toggle {
+    width: 80px; height: 40px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.3s;
+  }
+
+  #music-toggle::after {
+    content: '';
+    position: absolute;
+    width: 32px; height: 32px;
+    background: #222;
+    border-radius: 2px;
+    top: 4px; left: 4px;
+    transition: all 0.3s;
+  }
+
+  #music-toggle.on {
+    background: #111;
+    border-color: #888;
+    box-shadow: 0 0 10px rgba(255,255,255,0.1);
+  }
+
+  #music-toggle.on::after {
+    left: 44px;
+    background: #fff;
+    box-shadow: 0 0 8px rgba(255,255,255,0.5);
+  }
+
+  #start-btn {
+    font-family: 'Italiana', serif;
+    font-style: italic;
+    font-size: 1.4rem;
+    letter-spacing: 5px;
+    background: transparent;
+    color: #222;
+    border: 1px solid #111;
+    padding: 12px 50px;
+    cursor: not-allowed;
+    transition: all 0.3s;
+  }
+
+  #start-btn.active {
+    color: #fff;
+    border-color: #666;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(255,255,255,0.08);
+    animation: btn-flicker 4s steps(1) infinite;
+  }
+
+  @keyframes btn-flicker {
+    0%,95%,100%{opacity:1} 96%{opacity:0.4} 97%{opacity:1} 98%{opacity:0.6} 99%{opacity:1}
+  }
+
+  #start-btn.active:hover {
+    background: rgba(255,255,255,0.04);
+    box-shadow: 0 0 25px rgba(255,255,255,0.12);
+    transform: skewX(-1deg);
+  }
+
+  /* ======= MAIN GAME ======= */
+  #game {
+    display: none;
+    position: fixed; inset: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: var(--bg);
+    animation: tv-shake 9s steps(1) infinite;
+  }
+
+  @keyframes tv-shake {
+    0%,87%,100%{ transform: none; filter: none; }
+    88%{ transform: translateX(4px) skewX(0.5deg); filter: brightness(1.4) saturate(1.5); }
+    89%{ transform: translateX(-3px) skewX(-0.5deg); filter: brightness(0.8); }
+    90%{ transform: translateX(2px); filter: brightness(1.1); }
+    91%{ transform: none; filter: none; }
+    /* signal dropout */
+    94%{ filter: brightness(0.1); }
+    94.3%{ filter: brightness(1.6); }
+    94.6%{ filter: brightness(0.1); }
+    95%{ filter: none; }
+  }
+
+  /* ======= HEADER ======= */
+  #header {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 25px;
+    border-bottom: 1px solid #111;
+    background: var(--bg);
+    z-index: 200;
+  }
+
+  #level-display {
+    font-family: 'Italiana', serif;
+    font-style: italic;
+    font-size: 1.4rem;
+    letter-spacing: 5px;
+    color: var(--accent);
+    opacity: 0.8;
+  }
+
+  #timer-display {
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: 2rem;
+    letter-spacing: 3px;
+    color: var(--text);
+    text-shadow: 0 0 8px rgba(255,255,255,0.3);
+    transition: color 0.3s;
+  }
+
+  #timer-display.warn {
+    color: #aaa;
+    text-shadow: 0 0 12px rgba(255,255,255,0.4);
+    animation: timer-panic 0.4s steps(1) infinite;
+  }
+
+  @keyframes timer-panic {
+    0%,100%{ opacity:1; transform:translateX(0); }
+    25%{ opacity:0.6; transform:translateX(-2px); }
+    75%{ opacity:0.8; transform:translateX(2px); }
+  }
+
+  /* ======= PUZZLE AREA ======= */
+  #puzzle-area {
+    margin-top: 70px;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 22px;
+    width: 100%; max-width: 600px;
+  }
+
+  #puzzle-question {
+    font-family: 'Italiana', serif;
+    font-style: italic;
+    font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+    text-align: center;
+    letter-spacing: 3px;
+    line-height: 1.7;
+    color: var(--text);
+    text-shadow: 0 0 15px rgba(255,255,255,0.1);
+    min-height: 3em;
+    animation: q-glitch 8s steps(1) infinite;
+  }
+
+  @keyframes q-glitch {
+    0%,92%,100%{ text-shadow: 0 0 15px rgba(255,255,255,0.15); transform: none; }
+    93%{ text-shadow: 3px 0 0 rgba(255,255,255,0.5), -3px 0 0 rgba(255,255,255,0.5); transform: translateX(2px); }
+    94%{ text-shadow: -3px 0 0 rgba(255,255,255,0.5), 3px 0 0 rgba(255,255,255,0.5); transform: translateX(-2px); }
+    95%{ text-shadow: 0 0 15px rgba(255,255,255,0.15); transform: none; }
+  }
+
+  /* ======= IMAGE CONTAINER ======= */
+  #img-container {
+    position: relative;
+    width: clamp(200px, 80vw, 400px);
+    height: clamp(200px, 50vw, 300px);
+    border: 1px solid #111;
+    box-shadow: 0 0 20px rgba(255,255,255,0.04), inset 0 0 30px rgba(0,0,0,0.5);
+    overflow: hidden;
+    cursor: crosshair;
+  }
+
+  #puzzle-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: brightness(0.6) contrast(1.3) saturate(0) grayscale(1);
+    transition: filter 0.1s;
+    pointer-events: none;
+    background: #000;
+  }
+
+  /* dark overlay that gets lighter as user reveals */
+  #dark-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,1);
+    transition: background 0.02s linear;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* revealed code - awalnya invisible, muncul setelah overlay hilang total */
+  #revealed-code {
+    position: absolute; inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: 4rem;
+    letter-spacing: 12px;
+    color: var(--text);
+    text-shadow: 0 0 30px rgba(255,255,255,0.9), 0 0 60px rgba(255,255,255,0.5);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+    transition: opacity 0.4s ease;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    font-weight: bold;
+  }
+
+  #revealed-code.visible {
+    opacity: 1;
+    animation: codePop 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) forwards;
+  }
+
+  @keyframes codePop {
+    0% { transform: scale(0.8); text-shadow: 0 0 0px white; letter-spacing: 20px; opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); letter-spacing: 12px; opacity: 1; text-shadow: 0 0 40px white; }
+  }
+
+  #img-hint {
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: 1rem;
+    letter-spacing: 3px;
+    color: var(--accent);
+    opacity: 0.35;
+    text-transform: uppercase;
+    text-align: center;
+    animation: pulse-text 4s infinite;
+  }
+
+  /* ======= INPUT AREA ======= */
+  #input-area {
+    display: flex; gap: 10px; align-items: center;
+    width: 100%;
+  }
+
+  #code-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #222;
+    color: var(--text);
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: 2rem;
+    letter-spacing: 10px;
+    padding: 8px 4px;
+    outline: none;
+    text-align: center;
+    caret-color: #fff;
+    text-shadow: 0 0 8px rgba(255,255,255,0.3);
+  }
+
+  #code-input::placeholder {
+    color: #1a1a1a;
+    letter-spacing: 6px;
+  }
+
+  #submit-btn {
+    font-family: 'Italiana', serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    letter-spacing: 3px;
+    background: transparent;
+    color: #aaa;
+    border: 1px solid #222;
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  #submit-btn:hover {
+    background: rgba(255,255,255,0.03);
+    border-color: #666;
+    box-shadow: 0 0 12px rgba(255,255,255,0.06);
+    transform: skewX(-1deg);
+  }
+
+  /* ======= FEEDBACK ======= */
+  #feedback {
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: 1.1rem;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: #aaa;
+    min-height: 1.4em;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  #feedback.wrong {
+    color: #777;
+    text-shadow: 0 0 8px rgba(255,255,255,0.2);
+    animation: glitch 0.3s;
+  }
+
+  #feedback.right {
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.4);
+  }
+
+  @keyframes glitch {
+    0%{transform:translate(0)} 20%{transform:translate(-4px,2px) skewX(2deg)} 40%{transform:translate(4px,-2px) skewX(-1deg)} 60%{transform:translate(-2px,4px)} 80%{transform:translate(2px,-4px)} 100%{transform:translate(0)}
+  }
+
+  /* ======= GLITCH TRANSITION ======= */
+  #glitch-overlay {
+    position: fixed; inset: 0;
+    background: var(--text);
+    z-index: 5000;
+    display: none;
+    pointer-events: none;
+  }
+
+  /* ======= LEVEL 2 ======= */
+  #butterfly-hint {
+    font-family: 'Italiana', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    letter-spacing: 4px;
+    color: var(--accent);
+    opacity: 0.3;
+    text-align: center;
+    max-width: 400px;
+    line-height: 2;
+    animation: pulse-text 5s infinite;
+  }
+
+  /* ======= FINAL SCREEN ======= */
+  #final-screen {
+    display: none;
+    position: fixed; inset: 0;
+    background: var(--bg);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    z-index: 8000;
+    padding: 40px;
+  }
+
+  #final-screen h2 {
+    font-family: 'Italiana', serif;
+    font-style: italic;
+    font-size: clamp(1.8rem, 5vw, 3.5rem);
+    text-align: center;
+    letter-spacing: 4px;
+    line-height: 1.5;
+    color: var(--text);
+    text-shadow: 0 0 30px rgba(255,255,255,0.3);
+    animation: txt-shake 5s steps(1) infinite;
+  }
+
+  #final-screen p {
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    color: var(--accent);
+    opacity: 0.85;
+    text-align: center;
+    letter-spacing: 3px;
+    line-height: 2.2;
+    max-width: 500px;
+    animation: pulse-text 4s infinite;
+  }
+
+  /* ======= TIMEOUT SCREEN ======= */
+  #timeout-screen {
+    display: none;
+    position: fixed; inset: 0;
+    background: var(--bg);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 7000;
+    gap: 20px;
+    animation: tv-shake 3s steps(1) infinite;
+  }
+
+  #timeout-screen h2 {
+    font-family: 'Italiana', serif;
+    font-style: italic;
+    font-size: clamp(2.5rem, 9vw, 6rem);
+    letter-spacing: 8px;
+    color: var(--text);
+    text-shadow: 0 0 20px rgba(255,255,255,0.25);
+    animation: txt-shake 2s steps(1) infinite;
+  }
+
+  #timeout-screen p {
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: 1.1rem;
+    letter-spacing: 5px;
+    color: var(--accent);
+    opacity: 0.4;
+    animation: pulse-text 2s infinite;
+  }
+
+  #retry-btn {
+    font-family: 'Italiana', serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    letter-spacing: 5px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid #222;
+    padding: 12px 40px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.2s;
+  }
+
+  #retry-btn:hover {
+    border-color: #666;
+    box-shadow: 0 0 15px rgba(255,255,255,0.08);
+    transform: skewX(-1deg);
+  }
+
+  /* ======= LEVEL 3 ======= */
+  #lvl3-content {
+    display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%;
+  }
+
+  #lvl3-cipher {
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: clamp(1.2rem, 4vw, 2.2rem);
+    letter-spacing: 6px;
+    color: var(--text);
+    text-align: center;
+    text-shadow: 0 0 10px rgba(255,255,255,0.15);
+    line-height: 2.2;
+    padding: 20px;
+    border: 1px solid #111;
+    background: rgba(255,255,255,0.01);
+    max-width: 420px;
+    animation: q-glitch 5s steps(1) infinite;
+  }
+
+  #lvl3-hint {
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+    color: var(--accent);
+    opacity: 0.15;
+    text-align: center;
+    max-width: 400px;
+    line-height: 2.5;
+  }
+
+  #watermark {
+    position: fixed; bottom: 10px; right: 15px;
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: 0.75rem;
+    color: var(--accent);
+    opacity: 0.06;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- CRT ghost bar -->
+<div class="crt-ghost"></div>
+
+<!-- AUDIO (loop) -->
+<audio id="bgm" loop>
+  <source src="q12.mp3" type="audio/mpeg">
+  <source src="q12.ogg" type="audio/ogg">
+</audio>
+
+<!-- ======= MUSIC GATE ======= -->
+<div id="music-gate">
+  <h1>teka teki</h1>
+  <p>aktifkan suara untuk melanjutkan</p>
+  <div class="toggle-wrap">
+    <span class="toggle-label">Musik</span>
+    <div id="music-toggle" onclick="toggleMusic()"></div>
+  </div>
+  <button id="start-btn" onclick="startGame()" disabled>Mulai</button>
+</div>
+
+<!-- ======= GLITCH TRANSITION ======= -->
+<div id="glitch-overlay"></div>
+
+<!-- ======= TIMEOUT SCREEN ======= -->
+<div id="timeout-screen">
+  <h2>WAKTU HABIS</h2>
+  <p>mereka tahu kamu di sini</p>
+  <button id="retry-btn" onclick="retryLevel()">coba lagi</button>
+</div>
+
+<!-- ======= FINAL SCREEN ======= -->
+<div id="final-screen">
+  <h2>kamu berhasil menembus kegelapan</h2>
+  <p>foto layar ini &amp; kirim ke <strong>bintang</strong><br>
+  kalau kamu berhasil dia akan kasih<br>
+  <strong>PROTOTYPE WEB KENA BANGET SI !!</strong></p>
+</div>
+
+<!-- ======= MAIN GAME ======= -->
+<div id="game">
+  <div id="header">
+    <span id="level-display">LEVEL 1</span>
+    <span id="timer-display">60</span>
+  </div>
+
+  <div id="puzzle-area">
+    <div id="puzzle-question"></div>
+
+    <!-- LEVEL 1: image with darkness overlay - code fully hidden -->
+    <div id="lvl1-content" style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%">
+      <div id="img-container" onmousemove="revealImage(event)" ontouchmove="revealImageTouch(event)">
+        <img id="puzzle-img" src="213.jpg" alt="teka-teki">
+        <div id="dark-overlay"></div>
+        <div id="revealed-code">0421</div>
+      </div>
+      <span id="img-hint">gerak mouse di atas gambar untuk melihat lebih jelas</span>
+    </div>
+
+    <!-- LEVEL 2: butterfly -->
+    <div id="lvl2-content" style="display:none;flex-direction:column;align-items:center;gap:12px;width:100%">
+      <div id="img-container2" style="position:relative;width:clamp(200px,80vw,400px);height:clamp(200px,50vw,300px);border:1px solid #1a1a1a;overflow:hidden;">
+        <img id="puzzle-img2" src="e1.jpg" alt="kupu-kupu" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.5) saturate(0.2);display:block;background:#0a0a0a;">
+      </div>
+      <div id="butterfly-hint">berapa kodenya?</div>
+    </div>
+
+    <!-- LEVEL 3: cipher -->
+    <div id="lvl3-content" style="display:none">
+      <div id="lvl3-cipher">
+        ░▒▓ ░▒▓ ░▒▓<br>
+        ▓▒░ ░▒▓ ▓▒░<br>
+        <span style="font-size:0.5em;letter-spacing:2px;opacity:0.3">[ redacted ]</span>
+      </div>
+      <div id="lvl3-hint">
+        &nbsp;
+      </div>
+    </div>
+
+    <div id="input-area">
+      <input id="code-input" type="tel" maxlength="6" placeholder="_ _ _ _" autocomplete="off" spellcheck="false" onkeydown="handleKey(event)">
+      <button id="submit-btn" onclick="checkCode()">→</button>
+    </div>
+    <div id="feedback">&nbsp;</div>
+  </div>
+</div>
+
+<div id="watermark">teka teki</div>
+
+<script>
+// ============================================================
+//  CONFIG 
+// ============================================================
+const LEVELS = [
+  {
+    // LEVEL 1
+    question: "sebuah keluarga menyimpan sesuatu\nterangi gambar untuk menemukannya",
+    img: "213.jpg",
+    type: "reveal",
+    answer: "0421",
+    hint: "gerak mouse di atas gambar untuk melihat lebih jelas"
+  },
+  {
+    // LEVEL 2
+    question: "berapa kodenya?",
+    img: "e1.jpg",
+    type: "think",
+    answer: "1307",
+    hint: "berapa kodenya?"
+  },
+  {
+    // LEVEL 3 
+    question: "░▒▓ PECAHKAN SANDI INI ░▒▓",
+    img: "",
+    type: "cipher",
+    answer: "2809",
+    hint: ""
+  }
+];
+
+let currentLevel = 0;
+let timerInterval = null;
+let timeLeft = 60;
+let revealAmount = 0;
+let musicOn = false;
+let isDragging = false;
+
+const bgm = document.getElementById('bgm');
+
+// ============================================================
+//  ANTI-SCREENSHOT / ANTI-DEVTOOLS / ANTI-TAB-SWITCH
+// ============================================================
+(function() {
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'PrintScreen') {
+      e.preventDefault();
+      document.body.style.filter = 'blur(20px)';
+      setTimeout(()=>{ document.body.style.filter=''; },2000);
+    }
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && ['I','J','C','i','j','c'].includes(e.key)) ||
+      (e.ctrlKey && ['u','s','p','U','S','P'].includes(e.key))
+    ) {
+      e.preventDefault();
+      blurGame();
+    }
+    if (e.metaKey && e.shiftKey && e.key === 'S') e.preventDefault();
+  });
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      blurGame();
+      try { window.close(); } catch(ex){}
+      setTimeout(()=>{ try { window.location.href = 'about:blank'; } catch(ex){} }, 500);
+    } else {
+      document.body.style.filter = '';
+    }
+  });
+  let devtoolsCheck = setInterval(function() {
+    if (window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160) {
+      blurGame();
+    }
+  }, 1000);
+  document.addEventListener('selectstart', e => e.preventDefault());
+  document.addEventListener('dragstart', e => e.preventDefault());
+  document.addEventListener('copy', e => {
+    if (!window._screenshotAllowed) e.preventDefault();
+  });
+})();
+
+function blurGame() {
+  document.body.style.filter = 'blur(30px) brightness(0.2)';
+  setTimeout(()=>{ document.body.style.filter=''; }, 3000);
+}
+
+// ============================================================
+//  MUSIC TOGGLE
+// ============================================================
+function toggleMusic() {
+  const btn = document.getElementById('music-toggle');
+  const startBtn = document.getElementById('start-btn');
+  musicOn = !musicOn;
+  btn.classList.toggle('on', musicOn);
+
+  if (musicOn) {
+    bgm.play().catch(()=>{});
+    startBtn.disabled = false;
+    startBtn.classList.add('active');
+  } else {
+    bgm.pause();
+    startBtn.disabled = true;
+    startBtn.classList.remove('active');
+  }
+}
+
+// ============================================================
+//  GAME START
+// ============================================================
+function startGame() {
+  if (!musicOn) return;
+  document.getElementById('music-gate').style.display = 'none';
+  const game = document.getElementById('game');
+  game.style.display = 'flex';
+  loadLevel(0);
+}
+
+// ============================================================
+//  LEVEL LOADER
+// ============================================================
+function loadLevel(idx) {
+  currentLevel = idx;
+  const lvl = LEVELS[idx];
+
+  document.getElementById('level-display').textContent = 'LEVEL ' + (idx+1);
+  document.getElementById('puzzle-question').innerHTML = lvl.question.replace(/\n/g,'<br>');
+
+  document.getElementById('lvl1-content').style.display = lvl.type === 'reveal' ? 'flex' : 'none';
+  document.getElementById('lvl2-content').style.display = lvl.type === 'think' ? 'flex' : 'none';
+  document.getElementById('lvl3-content').style.display = lvl.type === 'cipher' ? 'flex' : 'none';
+
+  if (lvl.type === 'reveal') {
+    document.getElementById('puzzle-img').src = lvl.img;
+    document.getElementById('dark-overlay').style.background = 'rgba(0,0,0,1)';
+    const codeDiv = document.getElementById('revealed-code');
+    codeDiv.classList.remove('visible');
+    codeDiv.style.opacity = '0';
+    revealAmount = 0;
+    lagTriggered = false;
+  }
+  if (lvl.type === 'think') {
+    document.getElementById('puzzle-img2').src = lvl.img;
+  }
+
+  document.getElementById('code-input').value = '';
+  document.getElementById('feedback').textContent = '\u00a0';
+  document.getElementById('feedback').className = '';
+
+  clearInterval(timerInterval);
+  timeLeft = 60;
+  updateTimerDisplay();
+  timerInterval = setInterval(tickTimer, 1000);
+}
+
+function tickTimer() {
+  timeLeft--;
+  updateTimerDisplay();
+  if (timeLeft <= 10) document.getElementById('timer-display').classList.add('warn');
+  else document.getElementById('timer-display').classList.remove('warn');
+  if (timeLeft <= 0) {
+    clearInterval(timerInterval);
+    showTimeout();
+  }
+}
+
+function updateTimerDisplay() {
+  document.getElementById('timer-display').textContent = String(timeLeft).padStart(2,'0');
+}
+
+// ============================================================
+//  IMAGE REVEAL (Level 1) — COVERAGE -> OVERLAY VANISH -> CODE SHOWS
+// ============================================================
+let lagTriggered = false;
+
+function revealImage(e) {
+  if (LEVELS[currentLevel].type !== 'reveal') return;
+  if (lagTriggered) return;
+  
+  const overlay = document.getElementById('dark-overlay');
+  // accumulate reveal based on mouse movement  revealAmount = Math.min(revealAmount + 0.008, 1);
+
+  // darken progressively
+  const opacity = Math.max(0, 1 - revealAmount * 1.2);
+  overlay.style.background = `rgba(0,0,0,${opacity.toFixed(3)})`;
+
+  // when fully revealed (overlay nearly gone) -> trigger code appearance
+  if (revealAmount >= 0.98 && !lagTriggered) {
+    triggerFullReveal();
+  }
+}
+
+function revealImageTouch(e) {
+  e.preventDefault();
+  if (e.touches.length > 0) {
+    revealImage({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
+  }
+}
+
+function triggerFullReveal() {
+  if (lagTriggered) return;
+  lagTriggered = true;
+  
+  const overlay = document.getElementById('dark-overlay');
+  const codeDiv = document.getElementById('revealed-code');
+  const img = document.getElementById('puzzle-img');
+  
+  // Glitch + lag effect
+  let dummy = 0;
+  const t0 = performance.now();
+  while(performance.now() - t0 < 350) { dummy += Math.random(); }
+  
+  flashGlitch(180);
+  
+  setTimeout(() => {
+    // overlay completely gone
+    overlay.style.background = 'rgba(0,0,0,0)';
+    img.style.filter = 'brightness(0.45) contrast(1.6) saturate(0.2)';
+    // NOW the secret code appears (not a watermark, direct in image container)
+    codeDiv.classList.add('visible');
+    codeDiv.style.opacity = '1';
+  }, 200);
+}
+
+// ============================================================
+//  GLITCH FLASH
+// ============================================================
+function flashGlitch(duration) {
+  const el = document.getElementById('glitch-overlay');
+  el.style.display = 'block';
+  el.style.opacity = '1';
+  el.style.background = '#fff';
+  setTimeout(()=>{
+    el.style.background = '#000';
+    setTimeout(()=>{
+      el.style.background = '#fff';
+      setTimeout(()=>{ el.style.display='none'; }, duration/3);
+    }, duration/3);
+  }, duration/3);
+}
+
+// ============================================================
+//  CODE CHECK
+// ============================================================
+function handleKey(e) {
+  if (e.key === 'Enter') checkCode();
+}
+
+function checkCode() {
+  const input = document.getElementById('code-input').value.trim();
+  const correct = LEVELS[currentLevel].answer;
+  const fb = document.getElementById('feedback');
+
+  if (input === correct) {
+    clearInterval(timerInterval);
+    fb.textContent = '✓ BENAR';
+    fb.className = 'right';
+    lagTriggered = false;
+    setTimeout(() => {
+      flashGlitch(300);
+      setTimeout(() => {
+        if (currentLevel + 1 < LEVELS.length) {
+          loadLevel(currentLevel + 1);
+        } else {
+          showFinal();
+        }
+      }, 400);
+    }, 600);
+  } else {
+    fb.textContent = '✗ SALAH — COBA LAGI';
+    fb.className = 'wrong';
+    document.getElementById('code-input').value = '';
+    const pa = document.getElementById('puzzle-area');
+    pa.style.animation = 'shake 0.3s';
+    setTimeout(()=>{ pa.style.animation=''; }, 300);
+  }
+}
+
+function showTimeout() {
+  flashGlitch(500);
+  setTimeout(()=>{
+    document.getElementById('timeout-screen').style.display = 'flex';
+    document.getElementById('game').style.display = 'none';
+  }, 600);
+}
+
+function retryLevel() {
+  document.getElementById('timeout-screen').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  lagTriggered = false;
+  loadLevel(currentLevel);
+}
+
+function showFinal() {
+  window._screenshotAllowed = true;
+  flashGlitch(600);
+  setTimeout(()=>{
+    document.getElementById('game').style.display = 'none';
+    const fs = document.getElementById('final-screen');
+    fs.style.display = 'flex';
+  }, 800);
+}
+</script>
+</body>
+</html>
